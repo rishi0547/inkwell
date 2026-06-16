@@ -15,27 +15,39 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Send, Loader2, AlertCircle } from "lucide-react";
 
 export default function CreatePostPage() {
-  const router      = useRouter();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState("");
-  const [body,  setBody]  = useState("");
+  const [body, setBody] = useState("");
 
-  const wordCount    = body.trim().split(/\s+/).filter(Boolean).length;
-  const readingMins  = Math.max(1, Math.ceil(wordCount / 200));
-  const canSubmit    = title.trim().length > 2 && body.trim().length > 10;
+  const wordCount = body.trim().split(/\s+/).filter(Boolean).length;
+  const readingMins = Math.max(1, Math.ceil(wordCount / 200));
+  const canSubmit = title.trim().length > 2 && body.trim().length > 10;
 
-  const { mutate: createPost, isPending, isError, error } = useMutation({
+  const {
+    mutate: createPost,
+    isPending,
+    isError,
+    error,
+  } = useMutation({
     mutationFn: postsApi.create,
     onSuccess: (newPost: Post) => {
+      // JSONPlaceholder always returns id: 101. Let's make it unique locally.
+      const uniqueNewPost = {
+        ...newPost,
+        id: Date.now(),
+      };
+
       // 1. Save to our "local posts" cache — persists across route changes
       //    (survives the JSONPlaceholder refetch that doesn't store new posts)
-      queryClient.setQueryData<Post[]>(QUERY_KEYS.localPosts(), (old) =>
-        [newPost, ...(old ?? [])]
-      );
+      queryClient.setQueryData<Post[]>(QUERY_KEYS.localPosts(), (old) => [
+        uniqueNewPost,
+        ...(old ?? []),
+      ]);
       // 2. Also add to the main posts cache immediately
       queryClient.setQueryData<Post[]>(QUERY_KEYS.posts(), (old) =>
-        old ? [newPost, ...old] : [newPost]
+        old ? [uniqueNewPost, ...old] : [uniqueNewPost],
       );
       // 3. Invalidate so homepage knows to re-sort
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.posts() });
@@ -57,7 +69,6 @@ export default function CreatePostPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
-
       {/* Back */}
       <Link
         href="/"
@@ -69,8 +80,10 @@ export default function CreatePostPage() {
       </Link>
 
       <div className="mb-10">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em]
-          text-muted-foreground mb-2">
+        <p
+          className="text-[11px] font-semibold uppercase tracking-[0.12em]
+          text-muted-foreground mb-2"
+        >
           New Post
         </p>
         <h1 className="font-serif text-4xl font-bold tracking-tight">
@@ -79,12 +92,15 @@ export default function CreatePostPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-
         {/* Title */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="title" className="text-sm font-semibold">Title</Label>
-            <span className="text-xs text-muted-foreground">{title.length} / 100</span>
+            <Label htmlFor="title" className="text-sm font-semibold">
+              Title
+            </Label>
+            <span className="text-xs text-muted-foreground">
+              {title.length} / 100
+            </span>
           </div>
           <Input
             id="title"
@@ -99,7 +115,9 @@ export default function CreatePostPage() {
         {/* Body */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="body" className="text-sm font-semibold">Content</Label>
+            <Label htmlFor="body" className="text-sm font-semibold">
+              Content
+            </Label>
             <span className="text-xs text-muted-foreground">
               {wordCount} words · {readingMins} min read
             </span>
@@ -116,11 +134,14 @@ export default function CreatePostPage() {
 
         {/* Inline error */}
         {isError && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30
-            bg-destructive/5 px-4 py-3">
+          <div
+            className="flex items-start gap-2.5 rounded-lg border border-destructive/30
+            bg-destructive/5 px-4 py-3"
+          >
             <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
             <p className="text-sm text-destructive">
-              {(error as Error)?.message ?? "Something went wrong. Please try again."}
+              {(error as Error)?.message ??
+                "Something went wrong. Please try again."}
             </p>
           </div>
         )}
@@ -132,7 +153,10 @@ export default function CreatePostPage() {
             variant="ghost"
             size="sm"
             disabled={isPending || (!title && !body)}
-            onClick={() => { setTitle(""); setBody(""); }}
+            onClick={() => {
+              setTitle("");
+              setBody("");
+            }}
           >
             Clear
           </Button>
@@ -155,7 +179,6 @@ export default function CreatePostPage() {
             )}
           </Button>
         </div>
-
       </form>
     </div>
   );

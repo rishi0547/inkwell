@@ -10,7 +10,11 @@ import { PostCardSkeleton } from "@/components/posts/PostCardSkeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Search, AlertCircle, ChevronLeft, ChevronRight, X
+  Search,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
 
 const PER_PAGE = 9;
@@ -27,31 +31,38 @@ function shuffle<T>(arr: T[]): T[] {
 
 function pageRange(cur: number, total: number): (number | "…")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  if (cur <= 4)          return [1, 2, 3, 4, 5, "…", total];
-  if (cur >= total - 3)  return [1, "…", total-4, total-3, total-2, total-1, total];
-  return [1, "…", cur-1, cur, cur+1, "…", total];
+  if (cur <= 4) return [1, 2, 3, 4, 5, "…", total];
+  if (cur >= total - 3)
+    return [1, "…", total - 4, total - 3, total - 2, total - 1, total];
+  return [1, "…", cur - 1, cur, cur + 1, "…", total];
 }
 
 export default function HomePage() {
   const [query, setQuery] = useState("");
-  const [page,  setPage]  = useState(1);
+  const [page, setPage] = useState(1);
 
   /* ── Keep shuffle order stable across re-renders ── */
   const shuffledApiRef = useRef<Post[] | null>(null);
   const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
 
   /* ── Fetch API posts ── */
-  const { data: posts, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: posts,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: QUERY_KEYS.posts(),
-    queryFn:  postsApi.getAll,
+    queryFn: postsApi.getAll,
   });
 
   /* ── Fetch locally created posts (our own cache) ── */
   const { data: localPosts = [] } = useQuery<Post[]>({
     queryKey: QUERY_KEYS.localPosts(),
-    queryFn:  () => [],        // never fetches — we write to it via setQueryData
+    queryFn: () => [], // never fetches — we write to it via setQueryData
     staleTime: Infinity,
-    gcTime:    Infinity,
+    gcTime: Infinity,
     initialData: [],
   });
 
@@ -68,7 +79,7 @@ export default function HomePage() {
 
     // Local posts always on top, then shuffled API posts
     const localIds = new Set(localPosts.map((p) => p.id));
-    const deduped  = shuffledApiRef.current.filter((p) => !localIds.has(p.id));
+    const deduped = shuffledApiRef.current.filter((p) => !localIds.has(p.id));
 
     setDisplayPosts([...localPosts, ...deduped]);
   }, [posts, localPosts]);
@@ -78,12 +89,13 @@ export default function HomePage() {
     if (!query.trim()) return displayPosts;
     const q = query.toLowerCase();
     return displayPosts.filter(
-      (p) => p.title.toLowerCase().includes(q) || p.body.toLowerCase().includes(q)
+      (p) =>
+        p.title.toLowerCase().includes(q) || p.body.toLowerCase().includes(q),
     );
   }, [displayPosts, query]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
-  const visible    = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const visible = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const handleSearch = useCallback((v: string) => {
     setQuery(v);
@@ -100,33 +112,46 @@ export default function HomePage() {
       {/* ── Hero ─────────────────────────────────────── */}
       <section className="relative border-b overflow-hidden">
         {/* Subtle radial fade at top center */}
-        <div className="pointer-events-none absolute inset-0
-          bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(0,0,0,0.035),transparent)]" />
+        <div
+          className="pointer-events-none absolute inset-0
+          bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(0,0,0,0.035),transparent)]"
+        />
 
         <div className="relative mx-auto max-w-6xl px-6 py-24 text-center">
-          <p className="animate-in fade-in slide-in-from-bottom-2 duration-500
+          <p
+            className="animate-in fade-in slide-in-from-bottom-2 duration-500
             text-[11px] font-semibold uppercase tracking-[0.15em]
-            text-muted-foreground mb-5">
+            text-muted-foreground mb-5"
+          >
             A space to think
           </p>
 
-          <h1 className="animate-in fade-in slide-in-from-bottom-3 duration-700
+          <h1
+            className="animate-in fade-in slide-in-from-bottom-3 duration-700
             font-serif text-5xl sm:text-6xl lg:text-7xl font-bold
-            tracking-tight leading-[1.1] mb-5">
-            Stories Worth<br className="hidden sm:block" /> Reading.
+            tracking-tight leading-[1.1] mb-5"
+          >
+            Stories Worth
+            <br className="hidden sm:block" /> Reading.
           </h1>
 
-          <p className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100
-            text-muted-foreground text-base sm:text-lg max-w-sm mx-auto mb-10">
+          <p
+            className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100
+            text-muted-foreground text-base sm:text-lg max-w-sm mx-auto mb-10"
+          >
             Discover ideas and perspectives from writers around the world.
           </p>
 
           {/* Search */}
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150
-            relative max-w-md mx-auto group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4
+          <div
+            className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150
+            relative max-w-md mx-auto group"
+          >
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4
               text-muted-foreground pointer-events-none
-              transition-colors group-focus-within:text-foreground" />
+              transition-colors group-focus-within:text-foreground"
+            />
             <Input
               placeholder="Search posts..."
               value={query}
@@ -152,7 +177,6 @@ export default function HomePage() {
 
       {/* ── Content ──────────────────────────────────── */}
       <div className="mx-auto max-w-6xl px-6 py-10">
-
         {/* Meta row */}
         {!isLoading && !isError && (
           <div className="flex items-center justify-between mb-8">
@@ -175,7 +199,9 @@ export default function HomePage() {
             <AlertCircle className="h-9 w-9 text-destructive" />
             <div>
               <p className="font-semibold">Failed to load posts</p>
-              <p className="mt-1 text-sm text-muted-foreground">{error?.message}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {error?.message}
+              </p>
             </div>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Try again
@@ -190,7 +216,11 @@ export default function HomePage() {
             <p className="text-sm text-muted-foreground">
               Try different keywords.
             </p>
-            <Button variant="outline" size="sm" onClick={() => handleSearch("")}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSearch("")}
+            >
               Clear search
             </Button>
           </div>
@@ -202,16 +232,15 @@ export default function HomePage() {
             ? Array.from({ length: PER_PAGE }).map((_, i) => (
                 <PostCardSkeleton key={i} />
               ))
-            : visible.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+            : visible.map((post) => <PostCard key={post.id} post={post} />)}
         </div>
 
         {/* Pagination */}
         {!isLoading && totalPages > 1 && (
           <div className="flex items-center justify-center gap-1.5 mt-12 flex-wrap">
             <Button
-              variant="outline" size="sm"
+              variant="outline"
+              size="sm"
               onClick={() => goTo(page - 1)}
               disabled={page === 1}
               className="gap-1 rounded-full"
@@ -221,7 +250,10 @@ export default function HomePage() {
 
             {pageRange(page, totalPages).map((p, i) =>
               p === "…" ? (
-                <span key={`e${i}`} className="px-1 text-sm text-muted-foreground">
+                <span
+                  key={`e${i}`}
+                  className="px-1 text-sm text-muted-foreground"
+                >
                   …
                 </span>
               ) : (
@@ -234,11 +266,12 @@ export default function HomePage() {
                 >
                   {p}
                 </Button>
-              )
+              ),
             )}
 
             <Button
-              variant="outline" size="sm"
+              variant="outline"
+              size="sm"
               onClick={() => goTo(page + 1)}
               disabled={page === totalPages}
               className="gap-1 rounded-full"
@@ -247,7 +280,6 @@ export default function HomePage() {
             </Button>
           </div>
         )}
-
       </div>
     </>
   );

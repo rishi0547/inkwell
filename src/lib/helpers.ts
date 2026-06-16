@@ -31,7 +31,8 @@ export function getReadingTime(text: string) {
 }
 
 export function getPostDate(id: number) {
-  const date = new Date(2024, id % 12, (id % 28) + 1);
+  // If id is a timestamp (e.g. > 1000000000), construct Date from it; otherwise use mock formula
+  const date = id > 1000000000 ? new Date(id) : new Date(2024, id % 12, (id % 28) + 1);
   return date.toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric",
   });
